@@ -36,13 +36,13 @@ class BM25Gensim:
         self.bm25_index = TfidfModel.load(checkpoint_path + "/bm25_index")
 
     def preprocess(self, text):
-        exclude = set(string.punctuation)
-        text = ' '.join(text.split())
-        text = ''.join(ch for ch in text if ch not in exclude)
-        text = text.lower()
+        # exclude = set(string.punctuation)
+        # text = ' '.join(text.split())
+        # text = ''.join(ch for ch in text if ch not in exclude)
+        # text = text.lower()
         text = text.replace('\n', ' ')
-        text = re.sub(r'\s+', ' ', text)
-        text = text.strip()
+        # text = re.sub(r'\s+', ' ', text)
+        # text = text.strip()
         return text
 
     def get_top_result(self, query, topk=10):
@@ -51,4 +51,4 @@ class BM25Gensim:
         tfidf_query = self.tfidf_model[self.dictionary.doc2bow(tokenized_query)]
         scores = self.bm25_index[tfidf_query]
         top_n = np.argsort(scores)[::-1][:topk]
-        return top_n.tolist()  # , scores[top_n], " ".join(self.corpus[np.argmax(scores)])
+        return top_n.tolist(), scores[top_n]

@@ -1,3 +1,5 @@
 .vscode
 venv
 __pycache__
+document_retrieval/__pycache__
+machine_reading_comprehension/__pycache__

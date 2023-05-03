@@ -4,22 +4,25 @@ import pandas as pd
 
 
 class Document_Loader:
-    def __init__(self, passage_paths) -> None:
+    def __init__(self, passage_paths, index_offset) -> None:
         self.data = list()
         self.passage_paths = passage_paths
-
+        self.index_offset = index_offset
         self.__load_passage()
 
     def __load_passage(self):
-        for passage_path in self.passage_paths:
-            for filename in os.listdir(passage_path):
+        for passage_index, passage_path in enumerate(self.passage_paths):
+            index = self.index_offset[passage_index]
+            for filename in sorted(os.listdir(passage_path)):
                 with open(passage_path+'/'+filename, 'r') as f:
                     self.data.append(
                         {
                             'name': filename.split('.')[0],
-                            'text': f.read()
+                            'text': f.read(),
+                            'id': index
                         }
                     )
+                    index += 1
 
     def get_passage(self):
         return self.data
@@ -32,6 +35,9 @@ class Document_Loader:
 
     def get_name(self):
         return [text['name'] for text in self.data]
+    
+    def get_id(self):
+        return [text['id'] for text in self.data]
 
 
 class FAQ_Loader:
