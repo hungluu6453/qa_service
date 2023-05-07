@@ -9,18 +9,15 @@ from document_retrieval.bm25 import BM25Gensim
 from document_retrieval.loader import Document_Loader
 import constant
 
-origins = [
-    # "http://localhost:3000",
-    "http://localhost:8001",
-]
 
+logging.basicConfig(level=logging.INFO)
 
 K = 3
 
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,15 +47,13 @@ class Response_Item(BaseModel):
     start_position: int
     end_position: int
     text: str
-    execution_time: float
     context: str
     question: str
     paragraph_id: int
 
 
-@app.post("/api/v1/retrieve")
-def retrieve(Request: Request_Item):
-    print(Request)
+@app.post("/bkheart/api/qa")
+def qa(Request: Request_Item):
     role = Request.role
     question = Request.question
 
@@ -73,9 +68,6 @@ def retrieve(Request: Request_Item):
         context, question
     )
 
-    answer = answer.replace('<s>', '')
-    answer = answer.remove('</s>', '')
-
     logging.info('Question: %s, Role: %s', question, role)
     logging.info('Answer: %s, Execution time: %s', answer, execution_time)
     logging.info('Context: %s', context)
@@ -84,7 +76,6 @@ def retrieve(Request: Request_Item):
         start_position=start_position,
         end_position=end_position,
         text=answer,
-        execution_time=round(execution_time, 4),
         context=context,
         question=question,
         paragraph_id=paragraph_id

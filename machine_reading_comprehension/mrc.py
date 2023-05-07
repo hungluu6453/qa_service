@@ -27,5 +27,8 @@ class Question_Aswering_model:
         end_position = int(tf.argmax(outputs.end_logits, axis=1))
 
         answer = inputs["input_ids"][0, start_position: end_position + 1]
+        answer = self.tokenizer.decode(answer)
+        answer = answer.replace('<s>', '')
+        answer = answer.replace('</s>', '')
 
-        return start_position, end_position, self.tokenizer.decode(answer), time.time()-start
+        return start_position, end_position, answer, time.time()-start
