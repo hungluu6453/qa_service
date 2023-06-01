@@ -7,3 +7,8 @@ gensim==4.3.0
 numpy==1.24.2
 sentencepiece==0.1.97
 torch==1.13.1
+
+
+pandarallel
+nltk
+ipywidgets

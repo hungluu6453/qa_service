@@ -1,21 +1,37 @@
 import string
 import numpy as np
 import re
+import os
+import py_vncorenlp
+
 from gensim.corpora import Dictionary
-from gensim.models import TfidfModel, OkapiBM25Model
+from gensim.models import TfidfModel, OkapiBM25Model, LuceneBM25Model, AtireBM25Model
 from gensim.similarities import SparseMatrixSimilarity
+
+from vncorenlp import VnCoreNLP
 
 # best_document = corpus[np.argmax(similarities)]
 
+CURRENT_DIR = os.getcwd()
+VNCORENLP_PATH = 'document_retrieval/vncorenlp'
 
 class BM25Gensim:
     def __init__(self, data=None):
         if data:
             self.corpus = [text.split() for text in data]
+        self.load_annotator()
 
-    def create_model(self, output_path):
+    def load_annotator(self):       
+        vncorenlp_dir = os.path.join(CURRENT_DIR, VNCORENLP_PATH) 
+        if not os.path.exists(vncorenlp_dir):
+            os.makedirs(vncorenlp_dir)
+            py_vncorenlp.download_model(save_dir=VNCORENLP_PATH)
+        vncorenlp_dir = 'document_retrieval/vncorenlp/VnCoreNLP-1.2.jar'
+        self.annotator = VnCoreNLP(vncorenlp_dir, annotators='wseg')
+
+    def create_model(self, output_path, k=1.5, b=0.75):
         dictionary = Dictionary(self.corpus)
-        bm25_model = OkapiBM25Model(dictionary=dictionary)
+        bm25_model = AtireBM25Model(dictionary=dictionary, k1=k, b=b)
         bm25_corpus = bm25_model[list(map(dictionary.doc2bow, self.corpus))]
         bm25_index = SparseMatrixSimilarity(
             bm25_corpus,
@@ -32,17 +48,18 @@ class BM25Gensim:
 
     def load_model(self, checkpoint_path):
         self.dictionary = Dictionary.load(checkpoint_path + "/dict")
-        self.tfidf_model = SparseMatrixSimilarity.load(checkpoint_path + "/tfidf")
-        self.bm25_index = TfidfModel.load(checkpoint_path + "/bm25_index")
+        self.tfidf_model = TfidfModel.load(checkpoint_path + "/tfidf")
+        self.bm25_index = SparseMatrixSimilarity.load(checkpoint_path + "/bm25_index")
 
     def preprocess(self, text):
-        # exclude = set(string.punctuation)
-        # text = ' '.join(text.split())
-        # text = ''.join(ch for ch in text if ch not in exclude)
-        # text = text.lower()
+        exclude = set(string.punctuation)
+        text = ' '.join(text.split())
+        text = ''.join(ch for ch in text if ch not in exclude)
+        text = text.lower()
         text = text.replace('\n', ' ')
-        # text = re.sub(r'\s+', ' ', text)
-        # text = text.strip()
+        text = re.sub(r'\s+', ' ', text)
+        text = text.strip()
+        text = ' '.join([' '.join(text) for text in self.annotator.tokenize(text)])
         return text
 
     def get_top_result(self, query, topk=10):

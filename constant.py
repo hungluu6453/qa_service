@@ -54,6 +54,7 @@ DOCUMENT_LIST_SINHVIEN = [
 
 DOC_LIST = [DOCUMENT_LIST_TIENSI, DOCUMENT_LIST_THACSI, DOCUMENT_LIST_SINHVIEN]
 OUT_PATH = ["./document_retrieval/index/phd", "./document_retrieval/index/master", "./document_retrieval/index/undergraduate"]
+OUT_PATH = ["./document_retrieval/index_v2/phd", "./document_retrieval/index_v2/master", "./document_retrieval/index_v2/undergraduate"]
 
 ROLE_MAP ={
     'phd': 0,
