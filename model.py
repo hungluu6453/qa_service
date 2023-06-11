@@ -1,3 +1,4 @@
+import os
 import time
 import tensorflow as tf
 from transformers import (
@@ -19,7 +20,11 @@ class Question_Aswering_model:
                 from_pt=True
                 )
         else:
-            self.model = TFAutoModelForQuestionAnswering.from_pretrained(model_path)
+            os.chdir("..")
+            cur_dir = os.getcwd()
+            model_dir = os.path.join(cur_dir, model_path)
+            self.model = TFAutoModelForQuestionAnswering.from_pretrained(model_dir)
+            os.chdir("5_qa_service")
         self.embebder = None
 
     def predict(self, context, question):
