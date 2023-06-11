@@ -4,15 +4,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
-from machine_reading_comprehension import mrc
-from document_retrieval.bm25 import BM25Gensim
-from document_retrieval.loader import Document_Loader
+import model
 import constant
 
 
 logging.basicConfig(level=logging.INFO)
 
-K = 3
 
 app = FastAPI()
 app.add_middleware(
@@ -23,52 +20,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-document_loader_list = list()
-retriever_list = list()
-
-for index, docs in enumerate(constant.DOC_LIST):
-    passage_path = [doc['Passage_path'] for doc in docs]
-    index_offset = [doc['Index_offset'] for doc in docs]
-    out_path = constant.OUT_PATH[index]
-    
-    document_loader_list.append(Document_Loader(passage_path, index_offset))
-    retriever_list.append(BM25Gensim())
-    retriever_list[index].load_model(out_path)
-
-model = mrc.Question_Aswering_model()
+model = model.Question_Aswering_model(constant.MODEL_PATH)
 
 
 class Request_Item(BaseModel):
-    role: str # phd master udergraduate
     question: str
+    context: str
 
 
 class Response_Item(BaseModel):
     start_position: int
     end_position: int
     text: str
-    context: str
-    question: str
-    paragraph_id: int
 
 
 @app.post("/bkheart/api/qa")
 def qa(Request: Request_Item):
-    role = Request.role
     question = Request.question
-
-    retriever = retriever_list[constant.ROLE_MAP[role]]
-    document_loader = document_loader_list[constant.ROLE_MAP[role]]
-
-    retrieve_result = retriever.get_top_result(question, K)
-    context = document_loader.get_context()[retrieve_result[0][0]]
-    paragraph_id = document_loader.get_id()[retrieve_result[0][0]]
+    context = Request.context
 
     start_position, end_position, answer, execution_time = model.predict(
         context, question
     )
 
-    logging.info('Question: %s, Role: %s', question, role)
+    logging.info('Question: %s', question)
     logging.info('Answer: %s, Execution time: %s', answer, execution_time)
     logging.info('Context: %s', context)
 
@@ -76,9 +51,6 @@ def qa(Request: Request_Item):
         start_position=start_position,
         end_position=end_position,
         text=answer,
-        context=context,
-        question=question,
-        paragraph_id=paragraph_id
     )
 
 

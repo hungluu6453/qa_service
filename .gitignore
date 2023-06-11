@@ -1,9 +1,6 @@
 .vscode
 venv
 __pycache__
-document_retrieval/__pycache__
-machine_reading_comprehension/__pycache__
-evaluation
-evaluation.ipynb
-question_answering_data
-document_retrieval/vncorenlp
+
+resource/fine_tuned_qa_model_10062023
+resource/__pycache__
